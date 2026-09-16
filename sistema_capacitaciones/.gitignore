@@ -1,0 +1,24 @@
+# Entorno virtual y dependencias
+venv/
+env/
+.venv/
+
+# Variables de entorno y credenciales sensibles
+.env
+
+# Archivos de Python compilados
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Base de datos local SQLite y archivos temporales
+*.sqlite3
+*.log
+
+# Archivos generados
+*.xlsx
+qr_capacitacion.png
+
+# Carpetas de VS Code / Sistema
+.vscode/
+.DS_Store

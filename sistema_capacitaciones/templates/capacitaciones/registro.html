@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <title>Registro de Capacitación Hospitalaria</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border-radius: 12px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .card-header { background-color: #0d6efd; color: white; border-radius: 12px 12px 0 0 !important; font-weight: bold; }
+        .section-title { font-size: 1.05rem; font-weight: bold; color: #0d6efd; border-bottom: 2px solid #e9ecef; padding-bottom: 6px; margin-bottom: 16px; margin-top: 15px; }
+        .hint-text { font-size: 0.82rem; color: #6c757d; }
+    </style>
+</head>
+<body class="py-4">
+<div class="container" style="max-width: 800px;">
+    <div class="card">
+        <div class="card-header text-center py-3">
+            <h4 class="mb-0">Formulario de Registro - Capacitación</h4>
+            <small class="text-white-50">Sistemas Sanitarios Hospitalarios</small>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST" novalidate>
+                {% csrf_token %}
+                <div style="display:none;">{{ form.sitio_web }}</div>
+
+                {% if form.errors %}
+                <div class="alert alert-danger" role="alert">
+                    <strong>Corrija los siguientes errores para continuar:</strong>
+                    <ul class="mb-0 mt-2">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- 1. Perfil y Permisos -->
+                <div class="section-title">1. Perfil y Permisos de Sistema</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Tipo de Usuario</label>
+                        {{ form.tipo_usuario }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Permisos a Solicitar *</label>
+                        {{ form.permisos_solicitar }}
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Trabaja en otro hospital? (Cuál?)</label>
+                        {{ form.trabaja_otro_hospital }}
+                        <div class="hint-text">Si no trabaja en otro efector, dejar "No".</div>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <div class="form-check">
+                            {{ form.tiene_acceso_sigehos }}
+                            <label class="form-check-label">¿Tiene acceso a SIGEHOS?</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Datos Personales -->
+                <div class="section-title">2. Datos Personales</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Primer Apellido *</label>
+                        {{ form.apellido }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Otro Apellido</label>
+                        {{ form.otro_apellido }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Primer Nombre *</label>
+                        {{ form.nombre }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Otro Nombre</label>
+                        {{ form.otro_nombre }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_cuil" translate="no" class="notranslate">CUIL *</label>
+                        {{ form.cuil }}
+                        <div class="hint-text">11 dígitos numéricos seguidos sin guiones.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Correo GCBA</label>
+                        {{ form.correo_gcba }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Mail Personal (Envío de material) *</label>
+                        {{ form.mail_personal }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Teléfono Personal *</label>
+                        {{ form.telefono }}
+                    </div>
+                </div>
+
+                <!-- 3. Datos Profesionales y Laborales -->
+                <div class="section-title">3. Datos Profesionales y Laborales</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Profesión</label>
+                        {{ form.profesion }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Categoría</label>
+                        {{ form.categoria }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tipo de Matrícula</label>
+                        {{ form.tipo_matricula }}
+                        <div class="hint-text">PRIORIZAR Matrícula Nacional (MN). Otras para excepciones.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nº de Matrícula</label>
+                        {{ form.numero_matricula }}
+                        <div class="hint-text">De no corresponder, agregar "-"</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Especialidad (si corresponde)</label>
+                        {{ form.especialidad }}
+                        <div class="hint-text">NOTA: Se registra exclusivamente especialidad acreditada.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Servicio *</label>
+                        {{ form.servicio }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Área de trabajo (Sala)</label>
+                        {{ form.area_trabajo }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Días y Horarios</label>
+                        {{ form.dias_horarios }}
+                    </div>
+                </div>
+
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">Enviar Registro de Capacitación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
