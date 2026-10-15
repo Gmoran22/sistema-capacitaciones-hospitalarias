@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantalla del Capacitador - Generador QR</title>
+    <!-- Importamos la librería ligera para generar QR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: #2c3e50; 
+            color: white; 
+            margin: 0;
+            text-align: center;
+        }
+        h1 { margin-bottom: 10px; font-size: 2.5rem; }
+        p { margin-bottom: 30px; font-size: 1.2rem; color: #bdc3c7; }
+        
+        /* Contenedor blanco para que el QR tenga buen contraste al escanearse */
+        #contenedor-qr { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Validación de Asistencia</h1>
+    <p>Apunta con la cámara de tu celular al siguiente código para registrarte:</p>
+    
+    <!-- Aquí se inyectará el código QR mágicamente -->
+    <div id="contenedor-qr"></div>
+
+    <script>
+        // ACÁ ESTÁ LA MAGIA:
+        // Reemplazá esta URL por la ruta donde esté alojado tu formulario.
+        // Si lo subís a Render, ponés esa URL. 
+        // Si estás probando en tu casa con Live Server, poné la IP local de tu compu (ej: http://192.168.1.15:5500/registro_qr.html)
+        
+        const urlDelFormulario = "http://192.168.0.19:5500/registro_qr.html";
+
+        // Generamos el QR de forma dinámica
+        new QRCode(document.getElementById("contenedor-qr"), {
+            text: urlDelFormulario,
+            width: 300, // Tamaño ideal para proyectar
+            height: 300,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H // Alto nivel de corrección de errores (ideal para celulares de baja gama)
+        });
+    </script>
+</body>
+</html>

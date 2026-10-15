@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sincronización Offline - Sistema de Gestión</title>
+    <style>
+        /* Estilos básicos para la interfaz mobile-first */
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; }
+        .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        /* CSS para el Banner de Estado (Criterios 1, 2 y 3) */
+        #status-banner {
+            display: none; /* Oculto por defecto */
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        /* Clases dinámicas según el estado de conexión */
+        .status-offline { background-color: #dc3545; } /* Rojo */
+        .status-syncing { background-color: #ffc107; color: #333 !important; } /* Amarillo */
+        .status-success { background-color: #28a745; } /* Verde */
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Contenedor del estado de conexión -->
+        <div id="status-banner"></div>
+
+        <h2>Registro de Asistencia</h2>
+        <p>Esta es la interfaz de carga (Frontend). Usa las herramientas de desarrollador para simular la caída de red.</p>
+        
+        <!-- Botón para simular que alguien guardó datos mientras no había internet -->
+        <button onclick="simularGuardadoOffline()">Simular guardado offline de 1 asistente</button>
+    </div>
+
+    <script>
+        // ALCANCE: Parametrización del tipo de usuario
+        // En la vida real, esto vendría del login o un token JWT.
+        const rolUsuarioActual = "Administrador"; 
+
+        const banner = document.getElementById('status-banner');
+
+        // CRITERIO 1: Visualizar estado de conexión (Cuando se cae la red)
+        window.addEventListener('offline', () => {
+            banner.style.display = 'block';
+            banner.className = 'status-offline';
+            banner.innerText = 'Sin conexión. Los registros se guardarán localmente.';
+        });
+
+        // CRITERIO 2: Estado positivo y Sincronización en curso (Cuando vuelve la red)
+        window.addEventListener('online', async () => {
+            banner.style.display = 'block';
+            banner.className = 'status-syncing';
+            banner.innerText = 'Conexión restablecida. Sincronización en curso...';
+            
+            // Disparamos la lógica de sincronización
+            await ejecutarSincronizacion();
+        });
+
+        async function ejecutarSincronizacion() {
+            // Verificación del ALCANCE: Solo Administrador/Desarrollador procesa el lote
+            if (rolUsuarioActual !== "Administrador" && rolUsuarioActual !== "Desarrollador") {
+                console.log("Usuario sin permisos para sincronizar lotes automáticos.");
+                banner.style.display = 'none';
+                return;
+            }
+
+            // Verificamos si hay datos guardados en LocalStorage
+            const lotePendiente = localStorage.getItem('lote_asistencias_offline');
+            if (!lotePendiente) {
+                // Si no hay nada que sincronizar, ocultamos el cartel a los 2 segundos
+                setTimeout(() => { banner.style.display = 'none'; }, 2000);
+                return;
+            }
+
+            try {
+                // Simulación de la petición POST al backend Django (Fetch API)
+                // En producción: await fetch('/api/sincronizar', { method: 'POST', body: lotePendiente })
+                
+                // Agregamos un delay artificial de 3 segundos para que se alcance a leer el cartel amarillo
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                const respuestaBackendOk = true; // Simulamos que Django respondió 200 OK
+
+                if (respuestaBackendOk) {
+                    // CRITERIO 3: Estado cambia a sincronización completada
+                    banner.className = 'status-success';
+                    banner.innerText = 'Sincronización completada con éxito.';
+
+                    // CRITERIO 4: Eliminar de manera automática el lote temporal
+                    localStorage.removeItem('lote_asistencias_offline');
+                    console.log("Lote temporal eliminado del LocalStorage.");
+
+                    // Ocultamos el cartel verde después de 4 segundos para limpiar la UI
+                    setTimeout(() => {
+                        banner.style.display = 'none';
+                    }, 4000);
+                }
+            } catch (error) {
+                banner.className = 'status-offline';
+                banner.innerText = 'Error en el servidor. Se reintentará luego.';
+            }
+        }
+
+        // Función auxiliar para que pruebes el código en tu navegador
+        function simularGuardadoOffline() {
+            const datoFalso = [{ dni: "12345678", rol: "medico", estado: "pendiente_sync" }];
+            localStorage.setItem('lote_asistencias_offline', JSON.stringify(datoFalso));
+            alert("Dato guardado en LocalStorage. Ahora simula desconectar y reconectar la red.");
+        }
+    </script>
+</body>
+</html>

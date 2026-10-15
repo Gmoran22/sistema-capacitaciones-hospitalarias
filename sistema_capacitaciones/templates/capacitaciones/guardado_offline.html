@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualización y Guardado Offline</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
+        .dashboard { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 600px; text-align: center; }
+        
+        /* Estilos de la tabla de pre-visualización */
+        .data-preview { width: 100%; margin-bottom: 20px; border-collapse: collapse; text-align: left; font-size: 13px; }
+        .data-preview th, .data-preview td { padding: 8px; border-bottom: 1px solid #ddd; }
+        .data-preview th { background-color: #f8f9fa; }
+
+        /* Estilos del Label de Estado */
+        .status-label { display: inline-block; padding: 8px 15px; border-radius: 20px; font-weight: bold; color: white; margin-bottom: 20px; transition: background 0.3s; }
+        .bg-gris { background-color: #6c757d; }
+        .bg-amarillo { background-color: #ffc107; color: #333; }
+        .bg-verde { background-color: #28a745; }
+        .bg-rojo { background-color: #dc3545; }
+
+        /* Botones */
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; font-size: 15px; cursor: pointer; font-weight: bold; margin: 5px; transition: background 0.3s;}
+        .btn-validar { background-color: #007bff; color: white; }
+        .btn-validar:disabled { background-color: #a0c4ff; cursor: not-allowed; }
+        .btn-guardar { background-color: #17a2b8; color: white; display: none; }
+
+        /* Panel de error y timer */
+        .error-panel { display: none; margin-top: 15px; padding: 15px; border: 1px solid #dc3545; border-radius: 5px; background-color: #f8d7da; color: #721c24; font-size: 14px; }
+        .timer-text { font-weight: bold; font-size: 18px; margin-top: 10px; }
+
+        /* Estilos del Toast (Notificación flotante) */
+        #toast-container {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.5s, bottom 0.5s;
+            font-size: 14px;
+        }
+        #toast-container.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+        #toast-container.success-toast { background-color: #28a745; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <h2>Revisión de Lote Offline</h2>
+        <p>Pre-visualización de registros antes de sincronizar con el backend.</p>
+        
+        <!-- Tabla actualizada a los nuevos campos requeridos -->
+        <table class="data-preview">
+            <tr>
+                <th>CUIL</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Profesión</th>
+                <th>Capacitación</th>
+            </tr>
+            <tr>
+                <td>20381234567</td>
+                <td>Juan</td>
+                <td>Pérez</td>
+                <td>Médico</td>
+                <td>RCP Avanzado</td>
+            </tr>
+            <tr>
+                <td>27299876543</td>
+                <td>María</td>
+                <td>Gómez</td>
+                <td>Enfermería</td>
+                <td>RCP Avanzado</td>
+            </tr>
+        </table>
+
+        <div>
+            <span id="label-estado" class="status-label bg-gris">PREPARADO</span>
+        </div>
+
+        <button id="btn-validar" class="btn btn-validar">Validar Sincronización</button>
+
+        <div id="error-panel" class="error-panel">
+            Error de conexión con el servidor principal.
+            <div id="timer-text" class="timer-text">Reintentando en: 5s</div>
+            <div id="intentos-text" style="margin-top: 5px; font-size: 12px;">Intento 0 de 3</div>
+        </div>
+
+        <button id="btn-guardar" class="btn btn-guardar">GUARDAR Lote Temporal</button>
+    </div>
+
+    <!-- Contenedor del Toast -->
+    <div id="toast-container"></div>
+
+    <script>
+        const btnValidar = document.getElementById('btn-validar');
+        const btnGuardar = document.getElementById('btn-guardar');
+        const labelEstado = document.getElementById('label-estado');
+        const errorPanel = document.getElementById('error-panel');
+        const timerText = document.getElementById('timer-text');
+        const intentosText = document.getElementById('intentos-text');
+        const toast = document.getElementById('toast-container');
+
+        let intentos = 0;
+        const maxIntentos = 3;
+
+        // Función para mostrar el Toast
+        function mostrarToast(mensaje, tipo) {
+            toast.textContent = mensaje;
+            if (tipo === 'success') {
+                toast.className = "success-toast show";
+            } else {
+                toast.className = "show"; 
+            }
+            setTimeout(() => {
+                toast.className = toast.className.replace("show", "");
+            }, 4000);
+        }
+
+        btnValidar.addEventListener('click', () => {
+            btnValidar.disabled = true;
+            labelEstado.className = 'status-label bg-amarillo';
+            labelEstado.textContent = 'VALIDANDO/GUARDANDO';
+            
+            setTimeout(simularFallaDeRed, 1500);
+        });
+
+        function simularFallaDeRed() {
+            labelEstado.className = 'status-label bg-rojo';
+            labelEstado.textContent = 'INCOMPLETO';
+            errorPanel.style.display = 'block';
+            iniciarReintento();
+        }
+
+        function iniciarReintento() {
+            if (intentos >= maxIntentos) {
+                timerText.textContent = "Conexión fallida tras 3 intentos.";
+                btnGuardar.style.display = 'inline-block';
+                return;
+            }
+
+            intentos++;
+            intentosText.textContent = `Intento ${intentos} de ${maxIntentos}`;
+            let segundosRestantes = 5;
+
+            const intervalo = setInterval(() => {
+                timerText.textContent = `Reintentando en: ${segundosRestantes}s`;
+                
+                if (segundosRestantes <= 0) {
+                    clearInterval(intervalo);
+                    iniciarReintento();
+                }
+                segundosRestantes--;
+            }, 1000);
+        }
+
+        btnGuardar.addEventListener('click', () => {
+            const ahora = new Date();
+            const yy = String(ahora.getFullYear()).slice(-2);
+            const mm = String(ahora.getMonth() + 1).padStart(2, '0');
+            const dd = String(ahora.getDate()).padStart(2, '0');
+            const hh = String(ahora.getHours()).padStart(2, '0');
+            const min = String(ahora.getMinutes()).padStart(2, '0');
+            const ss = String(ahora.getSeconds()).padStart(2, '0');
+
+            const nombreLote = `RegCap[${yy}${mm}${dd} + ${hh}${min}${ss}]`;
+
+            // Estructura JSON actualizada exactamente a los 7 campos requeridos por backend
+            const loteData = [
+                { 
+                    nombre: "Juan", 
+                    apellido: "Pérez",
+                    cuil: "20381234567", 
+                    correo: "juan.perez@hospital.com",
+                    profesion: "Médico",
+                    servicio: "Terapia Intensiva",
+                    capacitacion: "RCP Avanzado"
+                },
+                { 
+                    nombre: "María", 
+                    apellido: "Gómez",
+                    cuil: "27299876543", 
+                    correo: "maria.gomez@hospital.com",
+                    profesion: "Enfermería",
+                    servicio: "Terapia Intensiva",
+                    capacitacion: "RCP Avanzado"
+                }
+            ];
+
+            // Guardado en LocalStorage
+            localStorage.setItem(nombreLote, JSON.stringify(loteData));
+            
+            // Disparar Toast en lugar de alert()
+            mostrarToast(`Lote guardado localmente: ${nombreLote}`, 'success');
+            
+            // Reiniciar UI
+            btnGuardar.style.display = 'none';
+            errorPanel.style.display = 'none';
+            labelEstado.className = 'status-label bg-gris';
+            labelEstado.textContent = 'PREPARADO';
+            btnValidar.disabled = false;
+            intentos = 0;
+        });
+    </script>
+</body>
+</html>
