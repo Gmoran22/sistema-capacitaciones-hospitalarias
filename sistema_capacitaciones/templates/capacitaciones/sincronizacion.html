@@ -37,12 +37,11 @@
         <p>Esta es la interfaz de carga (Frontend). Usa las herramientas de desarrollador para simular la caída de red.</p>
         
         <!-- Botón para simular que alguien guardó datos mientras no había internet -->
-        <button onclick="simularGuardadoOffline()">Simular guardado offline de 1 asistente</button>
+        <button onclick="simularGuardadoOffline()">Simular guardado offline (Llave RegCap + CUIL)</button>
     </div>
 
     <script>
         // ALCANCE: Parametrización del tipo de usuario
-        // En la vida real, esto vendría del login o un token JWT.
         const rolUsuarioActual = "Administrador"; 
 
         const banner = document.getElementById('status-banner');
@@ -72,48 +71,87 @@
                 return;
             }
 
-            // Verificamos si hay datos guardados en LocalStorage
-            const lotePendiente = localStorage.getItem('lote_asistencias_offline');
-            if (!lotePendiente) {
-                // Si no hay nada que sincronizar, ocultamos el cartel a los 2 segundos
+            // CRITERIO DE ACEPTACIÓN 1: Iterar sobre LocalStorage recuperando solo llaves 'RegCap...'
+            const llavesRegCap = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('RegCap')) {
+                    llavesRegCap.push(key);
+                }
+            }
+
+            if (llavesRegCap.length === 0) {
+                console.log("No se encontraron lotes 'RegCap' pendientes de sincronización.");
                 setTimeout(() => { banner.style.display = 'none'; }, 2000);
                 return;
             }
 
             try {
-                // Simulación de la petición POST al backend Django (Fetch API)
-                // En producción: await fetch('/api/sincronizar', { method: 'POST', body: lotePendiente })
-                
-                // Agregamos un delay artificial de 3 segundos para que se alcance a leer el cartel amarillo
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                
-                const respuestaBackendOk = true; // Simulamos que Django respondió 200 OK
+                banner.style.display = 'block';
+                banner.className = 'status-syncing';
+                banner.innerText = `Sincronizando ${llavesRegCap.length} lote(s) con prefijo RegCap...`;
 
-                if (respuestaBackendOk) {
+                // Agregamos un delay artificial para que se alcance a leer el cartel amarillo
+                await new Promise(resolve => setTimeout(resolve, 2500));
+
+                let sincronizadosConExito = 0;
+
+                // Procesamos dinámicamente cada lote encontrado
+                for (const llave of llavesRegCap) {
+                    const contenido = localStorage.getItem(llave);
+                    if (!contenido) continue;
+
+                    const loteData = JSON.parse(contenido);
+                    console.log(`Procesando e impactando en backend [${llave}]:`, loteData);
+
+                    // Simulación de la petición POST al backend Django (Fetch API)
+                    // En producción real: await fetch('/api/sincronizar/', { method: 'POST', body: JSON.stringify(loteData) })
+                    const respuestaBackendOk = true; 
+
+                    if (respuestaBackendOk) {
+                        // CRITERIO DE ACEPTACIÓN 1 (Final): Eliminar la llave procesada
+                        localStorage.removeItem(llave);
+                        sincronizadosConExito++;
+                        console.log(`Llave temporal [${llave}] eliminada de LocalStorage.`);
+                    }
+                }
+
+                if (sincronizadosConExito > 0) {
                     // CRITERIO 3: Estado cambia a sincronización completada
                     banner.className = 'status-success';
-                    banner.innerText = 'Sincronización completada con éxito.';
+                    banner.innerText = `Sincronización completada: ${sincronizadosConExito} lote(s) procesado(s).`;
 
-                    // CRITERIO 4: Eliminar de manera automática el lote temporal
-                    localStorage.removeItem('lote_asistencias_offline');
-                    console.log("Lote temporal eliminado del LocalStorage.");
-
-                    // Ocultamos el cartel verde después de 4 segundos para limpiar la UI
+                    // Ocultamos el cartel verde después de 4 segundos
                     setTimeout(() => {
                         banner.style.display = 'none';
                     }, 4000);
                 }
+
             } catch (error) {
                 banner.className = 'status-offline';
                 banner.innerText = 'Error en el servidor. Se reintentará luego.';
             }
         }
 
-        // Función auxiliar para que pruebes el código en tu navegador
+        // CRITERIO DE ACEPTACIÓN 2: Eliminar objetos mock con 'dni' y reemplazar por 7 campos + CUIL
         function simularGuardadoOffline() {
-            const datoFalso = [{ dni: "12345678", rol: "medico", estado: "pendiente_sync" }];
-            localStorage.setItem('lote_asistencias_offline', JSON.stringify(datoFalso));
-            alert("Dato guardado en LocalStorage. Ahora simula desconectar y reconectar la red.");
+            const idUnico = Date.now();
+            const llaveDinamica = `RegCap_${idUnico}`;
+            
+            // Estructura real del sistema (CUIL de 11 dígitos + 7 campos obligatorios)
+            const registroCapacitacionReal = {
+                cuil: "20351234567",
+                apellido: "Gómez",
+                nombre: "María",
+                profesion: "Enfermera",
+                categoria: "Planta Permanente",
+                tipo_usuario: "Hospitalario",
+                servicio: "Pediatría",
+                area: "Cuidados Intensivos"
+            };
+
+            localStorage.setItem(llaveDinamica, JSON.stringify(registroCapacitacionReal));
+            alert(`Registro guardado en LocalStorage con la llave dinámica:\n${llaveDinamica}\n\nEstructura: CUIL + 7 campos obligatorios.`);
         }
     </script>
 </body>
