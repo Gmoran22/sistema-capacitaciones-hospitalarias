@@ -5,4 +5,7 @@ urlpatterns = [
     path('', views.registro_capacitado_view, name='registro_capacitado'),
     path('exito/', views.registro_exitoso_view, name='registro_exitoso'),
     path('exportar-excel/', views.exportar_excel_view, name='exportar_excel'),
+    
+    # Nuevo endpoint GET para el padrón 
+    path('api/padron/', views.PadronActivoListView.as_view(), name='padron_activo'),
 ]

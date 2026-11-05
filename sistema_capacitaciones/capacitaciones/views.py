@@ -10,6 +10,12 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 
+# --- NUEVOS IMPORTS PARA LA API (TICKET EQUIPO2-40) ---
+from rest_framework import generics
+from django.db.models import Q
+from .serializers import CapacitadoSerializer
+# ------------------------------------------------------
+
 from .models import Capacitado
 from .forms import CapacitadoForm
 
@@ -146,3 +152,35 @@ def exportar_excel_view(request):
     response['Content-Disposition'] = 'attachment; filename="Nomina_Oficial_Capacitados.xlsx"'
     wb.save(response)
     return response
+
+
+# --- VISTA PARA LA API DEL PADRÓN ---
+class PadronActivoListView(generics.ListAPIView):
+    """
+    Endpoint GET para consultar el padrón de personal activo.
+    Soporta filtrado opcional y búsqueda rápida por CUIL o Apellido.
+    """
+    serializer_class = CapacitadoSerializer
+
+    def get_queryset(self):
+        queryset = Capacitado.objects.all()
+        
+        # Capturamos los parámetros que envíe el frontend
+        search_query = self.request.query_params.get('q', None)
+        
+        # Si en tu modelo tenés un campo específico para filtrar la clase, cambialo acá 
+        # (por ejemplo, si se llama 'especialidad' en vez de 'capacitacion')
+        capacitacion = self.request.query_params.get('capacitacion', None)
+
+        if capacitacion:
+            queryset = queryset.filter(capacitacion__iexact=capacitacion)
+            
+        # Filtro de búsqueda rápida para el ticket EQUIPO2-39 (CUIL o Apellido)
+        if search_query:
+            queryset = queryset.filter(
+                Q(cuil__icontains=search_query) | 
+                Q(apellido__icontains=search_query)
+            )
+            
+        # Ordenamos por fecha de registro descendente (los últimos escaneos primero)
+        return queryset.order_by('-fecha_registro')
