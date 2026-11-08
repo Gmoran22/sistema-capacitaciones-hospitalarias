@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Padrón en Tiempo Real - Control de Asistencia</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background-color: #f0f2f5;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+      }
+      .dashboard {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 800px;
+      }
+      h2 {
+        text-align: center;
+        color: #333;
+      }
+      p.subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 25px;
+      }
+
+      /* Estadísticas rápidas */
+      .stats-container {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 20px;
+      }
+      .stat-card {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        width: 45%;
+        border: 1px solid #ddd;
+      }
+      .stat-number {
+        font-size: 24px;
+        font-weight: bold;
+        color: #007bff;
+      }
+
+      /* Tabla del Padrón */
+      .padron-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+      .padron-table th,
+      .padron-table td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+      }
+      .padron-table th {
+        background-color: #f8f9fa;
+      }
+
+      /* Insignia de estado */
+      .badge {
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .badge-presente {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .badge-ausente {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+
+      /* Botón de simulación para pruebas en vivo */
+      .btn-simular {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+      .btn-simular:hover {
+        background-color: #218838;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard">
+      <h2>Padrón de Asistentes - En Vivo</h2>
+      <p class="subtitle">
+        Monitoreo y actualización en tiempo real por escaneo de QR.
+      </p>
+
+      <!-- Tarjetas de métricas -->
+      <div class="stats-container">
+        <div class="stat-card">
+          <div>Total Asistentes</div>
+          <div id="total-asistentes" class="stat-number">0</div>
+        </div>
+        <div class="stat-card">
+          <div>Presentes (Scanned)</div>
+          <div id="total-presentes" class="stat-number" style="color: #28a745">
+            0
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de visualización del padrón -->
+      <table class="padron-table">
+        <thead>
+          <tr>
+            <th>CUIL</th>
+            <th>Nombre y Apellido</th>
+            <th>Profesión</th>
+            <th>Servicio</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-cuerpo">
+          <!-- Los datos se inyectarán dinámicamente -->
+        </tbody>
+      </table>
+
+      <!-- Botón para simular la llegada de un escaneo QR en tiempo real -->
+      <button id="btn-simular-qr" class="btn-simular">
+        Simular Escaneo QR en Vivo
+      </button>
+    </div>
+
+    <script>
+      // Base de datos inicial de la clase / padrón
+      let padronAsistentes = [
+        {
+          cuil: "20381234567",
+          nombre: "Juan Pérez",
+          profesion: "Médico",
+          servicio: "Terapia Intensiva",
+          presente: true,
+        },
+        {
+          cuil: "27299876543",
+          nombre: "María Gómez",
+          profesion: "Enfermería",
+          servicio: "Terapia Intensiva",
+          presente: false,
+        },
+        {
+          cuil: "20411222333",
+          nombre: "Carlos López",
+          profesion: "Kinesiólogo",
+          servicio: "Guardia",
+          presente: false,
+        },
+      ];
+
+      const tablaCuerpo = document.getElementById("tabla-cuerpo");
+      const totalAsistentesEl = document.getElementById("total-asistentes");
+      const totalPresentesEl = document.getElementById("total-presentes");
+      const btnSimularQR = document.getElementById("btn-simular-qr");
+
+      function renderizarPadron() {
+        tablaCuerpo.innerHTML = "";
+        let presentesCount = 0;
+
+        padronAsistentes.forEach((asistente) => {
+          if (asistente.presente) presentesCount++;
+
+          const fila = document.createElement("tr");
+          fila.innerHTML = `
+                    <td>${asistente.cuil}</td>
+                    <td>${asistente.nombre}</td>
+                    <td>${asistente.profesion}</td>
+                    <td>${asistente.servicio}</td>
+                    <td>
+                        <span class="badge ${
+                          asistente.presente
+                            ? "badge-presente"
+                            : "badge-ausente"
+                        }">
+                            ${asistente.presente ? "Presente" : "Ausente"}
+                        </span>
+                    </td>
+                `;
+          tablaCuerpo.appendChild(fila);
+        });
+
+        // Actualizar contadores
+        totalAsistentesEl.textContent = padronAsistentes.length;
+        totalPresentesEl.textContent = presentesCount;
+      }
+
+      // Simulación del evento en tiempo real al escanear un QR externo o local
+      btnSimularQR.addEventListener("click", () => {
+        // Buscamos al primer asistente que esté ausente y lo marcamos presente
+        const ausente = padronAsistentes.find((a) => !a.presente);
+        if (ausente) {
+          ausente.presente = true;
+          renderizarPadron();
+        } else {
+          alert("¡Todos los asistentes del padrón ya se encuentran presentes!");
+        }
+      });
+
+      // Carga inicial al abrir la vista
+      renderizarPadron();
+    </script>
+  </body>
+</html>
