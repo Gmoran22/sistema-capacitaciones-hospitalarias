@@ -30,10 +30,13 @@
                 <div class="alert alert-danger" role="alert">
                     <strong>Corrija los siguientes errores para continuar:</strong>
                     <ul class="mb-0 mt-2">
-                        {% for field, errors in form.errors.items %}
-                            {% for error in errors %}
-                                <li>{{ error }}</li>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
                             {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -83,7 +86,7 @@
                         {{ form.otro_nombre }}
                     </div>
                     <div class="col-md-6">
-                        <label for="id_cuil" translate="no" class="notranslate">CUIL *</label>
+                        <label for="id_cuil" translate="no" class="notranslate form-label fw-semibold">CUIL *</label>
                         {{ form.cuil }}
                         <div class="hint-text">11 dígitos numéricos seguidos sin guiones.</div>
                     </div>
@@ -148,5 +151,28 @@
         </div>
     </div>
 </div>
+
+<!-- SCRIPT DE RESALTADO DINÁMICO DE ERRORES -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        {% for field in form %}
+            {% if field.errors %}
+                (function() {
+                    const inputElement = document.getElementById("{{ field.id_for_label }}");
+                    if (inputElement) {
+                        // Remarca el input con borde rojo
+                        inputElement.classList.add("is-invalid", "border", "border-danger");
+                        
+                        // Genera el mensaje de error en rojo debajo del campo
+                        const errorMsg = document.createElement("div");
+                        errorMsg.className = "invalid-feedback d-block text-danger fw-semibold mt-1";
+                        errorMsg.innerText = "{{ field.errors.0|escapejs }}";
+                        inputElement.parentNode.appendChild(errorMsg);
+                    }
+                })();
+            {% endif %}
+        {% endfor %}
+    });
+</script>
 </body>
 </html>
