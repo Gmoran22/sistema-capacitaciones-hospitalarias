@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Búsqueda Rápida - Panel Administrativo</title>
+    <!-- Axios CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background-color: #f0f2f5;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+      }
+      .dashboard {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 900px;
+      }
+      h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 5px;
+      }
+      p.subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 25px;
+      }
+
+      /* Formulario de búsqueda */
+      .search-container {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 25px;
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+      }
+      .input-group {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .input-group label {
+        font-size: 13px;
+        font-weight: bold;
+        color: #555;
+        margin-bottom: 5px;
+      }
+      .input-group input {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+
+      .btn-buscar {
+        align-self: flex-end;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+        height: 41px;
+      }
+      .btn-buscar:hover {
+        background-color: #0056b3;
+      }
+
+      /* Tabla de resultados */
+      .results-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+      .results-table th,
+      .results-table td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+      }
+      .results-table th {
+        background-color: #f8f9fa;
+        color: #333;
+      }
+
+      /* Mensaje de sin resultados */
+      .no-results {
+        text-align: center;
+        color: #777;
+        padding: 20px;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard">
+      <h2>Búsqueda Rápida de Asistentes</h2>
+      <p class="subtitle">
+        Panel administrativo - Filtrado por CUIL y Apellido
+      </p>
+
+      <!-- Filtros de búsqueda -->
+      <div class="search-container">
+        <div class="input-group">
+          <label for="filtro-cuil">CUIL</label>
+          <input type="text" id="filtro-cuil" placeholder="Ej: 20381234567" />
+        </div>
+        <div class="input-group">
+          <label for="filtro-apellido">Apellido</label>
+          <input type="text" id="filtro-apellido" placeholder="Ej: Pérez" />
+        </div>
+        <button id="btn-buscar" class="btn-buscar">Buscar</button>
+      </div>
+
+      <!-- Tabla de resultados -->
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>CUIL</th>
+            <th>Nombre y Apellido</th>
+            <th>Profesión</th>
+            <th>Servicio</th>
+            <th>Capacitación</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-resultados">
+          <tr>
+            <td colspan="5" class="no-results">
+              Utilice los filtros superiores para realizar una búsqueda.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      const inputCuil = document.getElementById("filtro-cuil");
+      const inputApellido = document.getElementById("filtro-apellido");
+      const btnBuscar = document.getElementById("btn-buscar");
+      const tablaResultados = document.getElementById("tabla-resultados");
+
+      async function realizarBusqueda() {
+        const cuil = inputCuil.value.trim();
+        const apellido = inputApellido.value.trim();
+
+        try {
+          // Conexión con el endpoint de búsqueda del backend usando Axios (parámetros por GET)
+          // const respuesta = await axios.get('/api/asistentes/buscar/', {
+          //     params: { cuil: cuil, apellido: apellido }
+          // });
+          // const resultados = respuesta.data;
+
+          // Datos de prueba (simulación de respuesta del backend)
+          const resultadosMock = [
+            {
+              cuil: "20381234567",
+              nombre: "Juan Pérez",
+              profesion: "Médico",
+              servicio: "Terapia Intensiva",
+              capacitacion: "RCP Avanzado",
+            },
+            {
+              cuil: "27299876543",
+              nombre: "María Gómez",
+              profesion: "Enfermería",
+              servicio: "Guardia",
+              capacitacion: "Soporte Vital",
+            },
+          ].filter((item) => {
+            const matchCuil = cuil ? item.cuil.includes(cuil) : true;
+            const matchApellido = apellido
+              ? item.nombre.toLowerCase().includes(apellido.toLowerCase())
+              : true;
+            return matchCuil && matchApellido;
+          });
+
+          renderizarResultados(resultadosMock);
+        } catch (error) {
+          console.error("Error al consultar la API de búsqueda:", error);
+          tablaResultados.innerHTML = `<tr><td colspan="5" class="no-results" style="color: #dc3545;">Error al conectar con el servidor.</td></tr>`;
+        }
+      }
+
+      function renderizarResultados(asistentes) {
+        tablaResultados.innerHTML = "";
+
+        if (asistentes.length === 0) {
+          tablaResultados.innerHTML = `<tr><td colspan="5" class="no-results">No se encontraron registros con los filtros ingresados.</td></tr>`;
+          return;
+        }
+
+        asistentes.forEach((asistente) => {
+          const fila = document.createElement("tr");
+          fila.innerHTML = `
+                    <td>${asistente.cuil}</td>
+                    <td>${asistente.nombre}</td>
+                    <td>${asistente.profesion}</td>
+                    <td>${asistente.servicio}</td>
+                    <td>${asistente.capacitacion}</td>
+                `;
+          tablaResultados.appendChild(fila);
+        });
+      }
+
+      // Eventos de búsqueda
+      btnBuscar.addEventListener("click", realizarBusqueda);
+
+      // Búsqueda en tiempo real al presionar Enter en los inputs
+      inputCuil.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") realizarBusqueda();
+      });
+      inputApellido.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") realizarBusqueda();
+      });
+    </script>
+  </body>
+</html>
