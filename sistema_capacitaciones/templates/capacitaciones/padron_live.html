@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Padrón en Tiempo Real - Control de Asistencia</title>
+    <!-- Axios CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -147,41 +149,28 @@
     </div>
 
     <script>
-      // Base de datos inicial de la clase / padrón
-      let padronAsistentes = [
-        {
-          cuil: "20381234567",
-          nombre: "Juan Pérez",
-          profesion: "Médico",
-          servicio: "Terapia Intensiva",
-          presente: true,
-        },
-        {
-          cuil: "27299876543",
-          nombre: "María Gómez",
-          profesion: "Enfermería",
-          servicio: "Terapia Intensiva",
-          presente: false,
-        },
-        {
-          cuil: "20411222333",
-          nombre: "Carlos López",
-          profesion: "Kinesiólogo",
-          servicio: "Guardia",
-          presente: false,
-        },
-      ];
-
       const tablaCuerpo = document.getElementById("tabla-cuerpo");
       const totalAsistentesEl = document.getElementById("total-asistentes");
       const totalPresentesEl = document.getElementById("total-presentes");
       const btnSimularQR = document.getElementById("btn-simular-qr");
 
-      function renderizarPadron() {
+      // Función asíncrona para consultar el padrón real mediante Axios GET
+      async function cargarPadronLive() {
+        try {
+          // Reemplazá '/api/padron/' con el endpoint real de tu backend de Django
+          const respuesta = await axios.get("/api/padron/");
+          const padronAsistentes = respuesta.data;
+          renderizarPadron(padronAsistentes);
+        } catch (error) {
+          console.error("Error al obtener los datos del padrón:", error);
+        }
+      }
+
+      function renderizarPadron(asistentes) {
         tablaCuerpo.innerHTML = "";
         let presentesCount = 0;
 
-        padronAsistentes.forEach((asistente) => {
+        asistentes.forEach((asistente) => {
           if (asistente.presente) presentesCount++;
 
           const fila = document.createElement("tr");
@@ -204,24 +193,28 @@
         });
 
         // Actualizar contadores
-        totalAsistentesEl.textContent = padronAsistentes.length;
+        totalAsistentesEl.textContent = asistentes.length;
         totalPresentesEl.textContent = presentesCount;
       }
 
-      // Simulación del evento en tiempo real al escanear un QR externo o local
-      btnSimularQR.addEventListener("click", () => {
-        // Buscamos al primer asistente que esté ausente y lo marcamos presente
-        const ausente = padronAsistentes.find((a) => !a.presente);
-        if (ausente) {
-          ausente.presente = true;
-          renderizarPadron();
-        } else {
-          alert("¡Todos los asistentes del padrón ya se encuentran presentes!");
+      // Simulación de escaneo QR interconectada con Axios
+      btnSimularQR.addEventListener("click", async () => {
+        try {
+          // Opcional: Petición POST al backend para registrar un escaneo QR en vivo
+          // await axios.post('/api/registrar-asistencia/', { cuil: "..." });
+
+          // Vuelve a consultar los datos actualizados del servidor
+          await cargarPadronLive();
+        } catch (error) {
+          console.error("Error al procesar la simulación:", error);
         }
       });
 
       // Carga inicial al abrir la vista
-      renderizarPadron();
+      cargarPadronLive();
+
+      // Refresco automático en tiempo real cada 5 segundos
+      setInterval(cargarPadronLive, 5000);
     </script>
   </body>
 </html>
