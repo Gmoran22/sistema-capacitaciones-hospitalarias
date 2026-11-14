@@ -184,3 +184,44 @@ class PadronActivoListView(generics.ListAPIView):
             
         # Ordenamos por fecha de registro descendente (los últimos escaneos primero)
         return queryset.order_by('-fecha_registro')
+    
+    # --- VISTAS DEL FRONTEND ---
+def registro_qr_view(request):
+    if request.method == 'POST':
+        form = CapacitadoForm(request.POST)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    capacitado = form.save(commit=False)
+                    nombre_completo = f"{capacitado.nombre} {capacitado.apellido}"
+                    envio_ok = enviar_material_capacitacion(capacitado.mail_personal, nombre_completo)
+                    capacitado.material_enviado = envio_ok
+                    capacitado.save()
+                return redirect('registro_exitoso')
+            except Exception as e:
+                logger.error(f"Error al guardar registro QR: {str(e)}")
+                messages.error(request, "Ocurrió un error al procesar el registro. Inténtelo nuevamente.")
+    else:
+        form = CapacitadoForm()
+
+    return render(request, 'capacitaciones/registro_qr.html', {'form': form})
+
+
+def generador_qr_view(request):
+    return render(request, 'capacitaciones/generador_qr.html')
+
+
+def padron_live_view(request):
+    return render(request, 'capacitaciones/padron_live.html')
+
+
+def busqueda_rapida_view(request):
+    return render(request, 'capacitaciones/busqueda_rapida.html')
+
+
+def guardado_offline_view(request):
+    return render(request, 'capacitaciones/guardado_offline.html')
+
+
+def sincronizacion_view(request):
+    return render(request, 'capacitaciones/sincronizacion.html')
