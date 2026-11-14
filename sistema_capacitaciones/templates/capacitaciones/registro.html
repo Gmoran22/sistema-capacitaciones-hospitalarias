@@ -7,11 +7,12 @@
     <title>Registro de Capacitación Hospitalaria</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f7f6; font-family: Roboto, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .card { border-radius: 12px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .card-header { background-color: #0d6efd; color: white; border-radius: 12px 12px 0 0 !important; font-weight: bold; }
-        .section-title { font-size: 1.05rem; font-weight: bold; color: #0d6efd; border-bottom: 2px solid #e9ecef; padding-bottom: 6px; margin-bottom: 16px; margin-top: 15px; }
+        .card-header { background: linear-gradient(90deg, #1d4ed8 5%, #133e83 100%); color: white; border-radius: 12px 12px 0 0 !important; font-weight: bold; }
+        .section-title { font-size: 1.05rem; font-weight: bold; color: #1d4ed8; border-bottom: 2px solid #e9ecef; padding-bottom: 6px; margin-bottom: 16px; margin-top: 15px; }
         .hint-text { font-size: 0.82rem; color: #6c757d; }
+        .required { color: #e74c3c; font-weight: bold; }
     </style>
 </head>
 <body class="py-4">
@@ -30,13 +31,10 @@
                 <div class="alert alert-danger" role="alert">
                     <strong>Corrija los siguientes errores para continuar:</strong>
                     <ul class="mb-0 mt-2">
-                        {% for field in form %}
-                            {% for error in field.errors %}
-                                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
                             {% endfor %}
-                        {% endfor %}
-                        {% for error in form.non_field_errors %}
-                            <li>{{ error }}</li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -50,8 +48,11 @@
                         {{ form.tipo_usuario }}
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Permisos a Solicitar *</label>
+                        <label class="form-label fw-semibold">Permisos a Solicitar <span class="required">*</span></label>
                         {{ form.permisos_solicitar }}
+                        {% if form.permisos_solicitar.errors %}
+                        <span class="text-danger">Campo Obligatorio</span>
+                        {% endif %}
                     </div>
                     <div class="col-md-12">
                         <label class="form-label">Trabaja en otro hospital? (Cuál?)</label>
@@ -70,24 +71,33 @@
                 <div class="section-title">2. Datos Personales</div>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Primer Apellido *</label>
+                        <label class="form-label fw-semibold">Primer Apellido <span class="required">*</span></label>
                         {{ form.apellido }}
+                        {% if form.apellido.errors.0 %}
+                        <span class="text-danger">Campo Obligatorio</span>
+                        {% endif %}
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Otro Apellido</label>
                         {{ form.otro_apellido }}
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Primer Nombre *</label>
-                        {{ form.nombre }}
+                        <label class="form-label fw-semibold">Primer Nombre <span class="required">*</span></label>
+                        {{ form.nombre}}
+                        {% if form.nombre.errors %}
+                        <span class="text-danger">Campo Obligatorio</span>
+                        {% endif %}
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Otro Nombre</label>
                         {{ form.otro_nombre }}
                     </div>
                     <div class="col-md-6">
-                        <label for="id_cuil" translate="no" class="notranslate form-label fw-semibold">CUIL *</label>
+                        <label for="id_cuil" translate="no" class="notranslate fw-semibold">CUIL <span class="required">*</span></label>
                         {{ form.cuil }}
+                        {% if form.cuil.errors %}
+                        <span class="text-danger">Campo Obligatorio</span>
+                        {% endif %}
                         <div class="hint-text">11 dígitos numéricos seguidos sin guiones.</div>
                     </div>
                     <div class="col-md-6">
@@ -95,12 +105,18 @@
                         {{ form.correo_gcba }}
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Mail Personal (Envío de material) *</label>
+                        <label class="form-label fw-semibold">Mail Personal (Envío de material) <span class="required">*</span></label>
                         {{ form.mail_personal }}
+                        {% if form.mail_personal.errors %}
+                        <span class="text-danger">Campo Obligatorio</span>
+                        {% endif %}
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Teléfono Personal *</label>
+                        <label class="form-label fw-semibold">Teléfono Personal <span class="required">*</span></label>
                         {{ form.telefono }}
+                        {% if form.telefono.errors %}
+                        <span class="text-danger">Campo Obligatorio</span>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -131,8 +147,11 @@
                         <div class="hint-text">NOTA: Se registra exclusivamente especialidad acreditada.</div>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Servicio *</label>
+                        <label class="form-label fw-semibold">Servicio <span class="required">*</span></label>
                         {{ form.servicio }}
+                        {% if form.servicio.errors %}
+                        <span class="text-danger">Campo Obligatorio</span>
+                        {% endif %}
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Área de trabajo (Sala)</label>
@@ -144,35 +163,13 @@
                     </div>
                 </div>
 
-                <div class="d-grid mt-4">
-                    <button type="submit" class="btn btn-primary btn-lg">Enviar Registro de Capacitación</button>
+                <p class="mt-3 mb-2 small fw-semibold text-secondary"><span class="required">*</span> Campos Obligatorios</p>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg" style="background: linear-gradient(90deg, #1d4ed8 5%, #133e83 100%); border-radius: 10px;">Enviar Registro de Capacitación</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<!-- SCRIPT DE RESALTADO DINÁMICO DE ERRORES -->
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        {% for field in form %}
-            {% if field.errors %}
-                (function() {
-                    const inputElement = document.getElementById("{{ field.id_for_label }}");
-                    if (inputElement) {
-                        // Remarca el input con borde rojo
-                        inputElement.classList.add("is-invalid", "border", "border-danger");
-                        
-                        // Genera el mensaje de error en rojo debajo del campo
-                        const errorMsg = document.createElement("div");
-                        errorMsg.className = "invalid-feedback d-block text-danger fw-semibold mt-1";
-                        errorMsg.innerText = "{{ field.errors.0|escapejs }}";
-                        inputElement.parentNode.appendChild(errorMsg);
-                    }
-                })();
-            {% endif %}
-        {% endfor %}
-    });
-</script>
 </body>
 </html>

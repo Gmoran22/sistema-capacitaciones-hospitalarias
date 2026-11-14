@@ -6,14 +6,15 @@
     <title>Registro de Capacitación</title>
     <style>
         /* Diseño Mobile-First */
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        body { font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
         .form-container { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; margin-bottom: 60px; }
-        h2 { text-align: center; color: #333; margin-top: 0; }
+        h2 { text-align: center; color: white; margin: 0; }
+        .card-header { background: linear-gradient(90deg, #1d4ed8 5%, #133e83 100%); color: white; border-radius: 10px 10px 0 0; padding: 14px; margin: -25px -25px 20px -25px; overflow: hidden; }
         
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; font-size: 14px; }
         .opcional { font-weight: normal; color: #888; font-size: 12px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 15px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box; font-size: 15px; }
         input:focus, select:focus { border-color: #007bff; outline: none; }
         
         /* Mensajes de validación en tiempo real */
@@ -21,8 +22,8 @@
         .error { color: #dc3545; display: block; }
         .success { color: #28a745; display: block; }
         
-        .btn-submit { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: background 0.3s; }
-        .btn-submit:disabled { background-color: #a0c4ff; cursor: not-allowed; }
+        .btn-submit { width: 100%; padding: 12px; background: linear-gradient(90deg, #1d4ed8 5%, #133e83 100%); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: opacity 0.3s; }
+        .btn-submit:disabled { background: #a0c4ff; cursor: not-allowed; }
 
         /* Estilos del Toast (Notificación flotante) */
         #toast-container {
@@ -48,38 +49,47 @@
             bottom: 50px;
         }
         #toast-container.success-toast { background-color: #28a745; }
+
+        h3 { color: #133e83; margin-top: 20px; margin-bottom: 12px; }
+        .required { color: #e74c3c; }
+        h5 { color: #555; margin-top: 10px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <div class="form-container">
-        <h2>Registro de Asistencia</h2>
-        <!-- Formulario con 6 campos obligatorios y Servicio/Hospital opcional -->
+        <div class="card-header">
+            <h2>Registro de Asistencia</h2>
+        </div>
+
+        <h3>Datos Personales</h3>
         <form id="registroForm">
             
             <div class="form-group">
-                <label for="cuil">CUIL (11 dígitos, sin guiones) *</label>
+                <label for="cuil">CUIL <span class="required">*</span> (11 dígitos, sin guiones)</label>
                 <input type="number" id="cuil" name="cuil" required placeholder="Ej: 20381234567">
                 <span id="cuil-feedback" class="feedback"></span>
             </div>
 
             <div class="form-group">
-                <label for="nombre">Nombre Completo *</label>
+                <label for="nombre">Nombre Completo <span class="required">*</span></label>
                 <input type="text" id="nombre" name="nombre" required placeholder="Ej: Juan Pérez">
             </div>
 
             <div class="form-group">
-                <label for="email">Correo Electrónico *</label>
+                <label for="email">Correo Electrónico <span class="required">*</span></label>
                 <input type="email" id="email" name="email" required placeholder="Ej: asistente@hospital.com">
             </div>
 
+            <h3>Datos Profesionales</h3>
+
             <div class="form-group">
-                <label for="matricula">Matrícula *</label>
+                <label for="matricula">Matrícula <span class="required">*</span></label>
                 <input type="text" id="matricula" name="matricula" required placeholder="Ej: MN 12345">
             </div>
 
             <div class="form-group">
-                <label for="rol">Rol *</label>
+                <label for="rol">Rol <span class="required">*</span></label>
                 <select id="rol" name="rol" required>
                     <option value="">Seleccione su rol...</option>
                     <option value="medico">Médico</option>
@@ -94,7 +104,7 @@
             </div>
 
             <div class="form-group">
-                <label for="permisos">Permisos *</label>
+                <label for="permisos">Permisos <span class="required">*</span></label>
                 <select id="permisos" name="permisos" required>
                     <option value="">Seleccione nivel de acceso...</option>
                     <option value="acceso_nivel_1">Acceso Nivel 1 (Básico)</option>
@@ -103,6 +113,7 @@
                 </select>
             </div>
 
+            <h5><span class="required">*</span> Campos Obligatorios</h5>
             <button type="submit" id="btn-submit" class="btn-submit" disabled>Registrar Asistencia</button>
         </form>
     </div>
@@ -120,7 +131,6 @@
 
         let cuilValido = false;
 
-        // Habilita el botón solo si los 6 campos obligatorios están completos y el CUIL es válido
         function verificarFormulario() {
             const todosCompletos = Array.from(camposObligatorios).every(campo => campo.value.trim() !== '');
             btnSubmit.disabled = !(cuilValido && todosCompletos && form.checkValidity());
@@ -131,7 +141,6 @@
             campo.addEventListener('change', verificarFormulario);
         });
 
-        // Función para mostrar el Toast en lugar del alert()
         function mostrarToast(mensaje, tipo) {
             toast.textContent = mensaje;
             if (tipo === 'success') {
@@ -145,7 +154,6 @@
             }, 3500);
         }
 
-        // Validación asíncrona adaptada para CUIL (11 dígitos)
         inputCuil.addEventListener('blur', async () => {
             const cuilValue = inputCuil.value.trim();
             cuilValido = false;
@@ -186,7 +194,6 @@
             verificarFormulario();
         });
 
-        // Envío del formulario
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             
