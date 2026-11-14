@@ -40,12 +40,8 @@
     <div id="contenedor-qr"></div>
 
     <script>
-        // ACÁ ESTÁ LA MAGIA:
-        // Reemplazá esta URL por la ruta donde esté alojado tu formulario.
-        // Si lo subís a Render, ponés esa URL. 
-        // Si estás probando en tu casa con Live Server, poné la IP local de tu compu (ej: http://192.168.1.15:5500/registro_qr.html)
-        
-        const urlDelFormulario = "http://192.168.0.19:5500/registro_qr.html";
+        // Toma automáticamente el dominio actual (túnel público, Wi-Fi local o servidor en la nube)
+        const urlDelFormulario = `${window.location.origin}/registro-qr/`;
 
         // Generamos el QR de forma dinámica
         new QRCode(document.getElementById("contenedor-qr"), {

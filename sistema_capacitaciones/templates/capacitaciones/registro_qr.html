@@ -12,6 +12,7 @@
         
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; font-size: 14px; }
+        .opcional { font-weight: normal; color: #888; font-size: 12px; }
         input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 15px; }
         input:focus, select:focus { border-color: #007bff; outline: none; }
         
@@ -53,32 +54,32 @@
 
     <div class="form-container">
         <h2>Registro de Asistencia</h2>
-        <!-- Formulario con los 7 campos obligatorios -->
+        <!-- Formulario con 6 campos obligatorios y Servicio/Hospital opcional -->
         <form id="registroForm">
             
             <div class="form-group">
-                <label for="cuil">CUIL (11 dígitos, sin guiones)</label>
+                <label for="cuil">CUIL (11 dígitos, sin guiones) *</label>
                 <input type="number" id="cuil" name="cuil" required placeholder="Ej: 20381234567">
                 <span id="cuil-feedback" class="feedback"></span>
             </div>
 
             <div class="form-group">
-                <label for="nombre">Nombre Completo</label>
+                <label for="nombre">Nombre Completo *</label>
                 <input type="text" id="nombre" name="nombre" required placeholder="Ej: Juan Pérez">
             </div>
 
             <div class="form-group">
-                <label for="email">Correo Electrónico</label>
+                <label for="email">Correo Electrónico *</label>
                 <input type="email" id="email" name="email" required placeholder="Ej: asistente@hospital.com">
             </div>
 
             <div class="form-group">
-                <label for="matricula">Matrícula</label>
+                <label for="matricula">Matrícula *</label>
                 <input type="text" id="matricula" name="matricula" required placeholder="Ej: MN 12345">
             </div>
 
             <div class="form-group">
-                <label for="rol">Rol</label>
+                <label for="rol">Rol *</label>
                 <select id="rol" name="rol" required>
                     <option value="">Seleccione su rol...</option>
                     <option value="medico">Médico</option>
@@ -88,12 +89,12 @@
             </div>
 
             <div class="form-group">
-                <label for="servicio">Servicio / Hospital</label>
-                <input type="text" id="servicio" name="servicio" required placeholder="Ej: Terapia Intensiva">
+                <label for="servicio">Servicio / Hospital <span class="opcional">(Opcional)</span></label>
+                <input type="text" id="servicio" name="servicio" placeholder="Ej: Terapia Intensiva">
             </div>
 
             <div class="form-group">
-                <label for="permisos">Permisos</label>
+                <label for="permisos">Permisos *</label>
                 <select id="permisos" name="permisos" required>
                     <option value="">Seleccione nivel de acceso...</option>
                     <option value="acceso_nivel_1">Acceso Nivel 1 (Básico)</option>
@@ -115,6 +116,20 @@
         const btnSubmit = document.getElementById('btn-submit');
         const form = document.getElementById('registroForm');
         const toast = document.getElementById('toast-container');
+        const camposObligatorios = form.querySelectorAll('input[required], select[required]');
+
+        let cuilValido = false;
+
+        // Habilita el botón solo si los 6 campos obligatorios están completos y el CUIL es válido
+        function verificarFormulario() {
+            const todosCompletos = Array.from(camposObligatorios).every(campo => campo.value.trim() !== '');
+            btnSubmit.disabled = !(cuilValido && todosCompletos && form.checkValidity());
+        }
+
+        camposObligatorios.forEach(campo => {
+            campo.addEventListener('input', verificarFormulario);
+            campo.addEventListener('change', verificarFormulario);
+        });
 
         // Función para mostrar el Toast en lugar del alert()
         function mostrarToast(mensaje, tipo) {
@@ -122,10 +137,9 @@
             if (tipo === 'success') {
                 toast.className = "success-toast show";
             } else {
-                toast.className = "show"; // Gris oscuro por defecto
+                toast.className = "show";
             }
             
-            // Ocultar después de 3.5 segundos
             setTimeout(() => {
                 toast.className = toast.className.replace("show", "");
             }, 3500);
@@ -134,11 +148,12 @@
         // Validación asíncrona adaptada para CUIL (11 dígitos)
         inputCuil.addEventListener('blur', async () => {
             const cuilValue = inputCuil.value.trim();
+            cuilValido = false;
             
             if (cuilValue.length !== 11) {
                 cuilFeedback.textContent = "El CUIL debe tener exactamente 11 dígitos.";
                 cuilFeedback.className = "feedback error";
-                btnSubmit.disabled = true;
+                verificarFormulario();
                 return;
             }
 
@@ -148,37 +163,37 @@
             cuilFeedback.style.color = "#666";
 
             try {
-                // Simulación de latencia de red
                 await new Promise(resolve => setTimeout(resolve, 800)); 
                 
-                // Simulación de base de datos
                 const cuilesYaRegistrados = ["20111111112", "27222222223", "20381234567"];
                 const existe = cuilesYaRegistrados.includes(cuilValue);
 
                 if (existe) {
                     cuilFeedback.textContent = "Error: Este CUIL ya registró asistencia hoy.";
                     cuilFeedback.className = "feedback error";
-                    btnSubmit.disabled = true; 
+                    cuilValido = false;
                 } else {
                     cuilFeedback.textContent = "CUIL habilitado.";
                     cuilFeedback.className = "feedback success";
-                    btnSubmit.disabled = false; 
+                    cuilValido = true;
                 }
             } catch (error) {
                 cuilFeedback.textContent = "Error de conexión al validar.";
                 cuilFeedback.className = "feedback error";
+                cuilValido = false;
             }
+
+            verificarFormulario();
         });
 
         // Envío del formulario
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             
-            // Dispara el Toast en vez del alert()
             mostrarToast("¡Asistencia registrada con éxito en MySQL!", "success");
             
-            // Limpia el formulario y bloquea el botón
             form.reset();
+            cuilValido = false;
             btnSubmit.disabled = true;
             cuilFeedback.style.display = "none";
         });
