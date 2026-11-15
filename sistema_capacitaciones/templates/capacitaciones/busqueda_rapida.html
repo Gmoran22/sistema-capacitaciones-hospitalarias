@@ -155,40 +155,21 @@
 
       async function realizarBusqueda() {
         const cuil = inputCuil.value.trim();
-        const apellido = inputApellido.value.trim();
+        const apellido = inputApellido.value.trim().toLowerCase();
 
         try {
-          // Conexión con el endpoint de búsqueda del backend usando Axios (parámetros por GET)
-          // const respuesta = await axios.get('/api/asistentes/buscar/', {
-          //     params: { cuil: cuil, apellido: apellido }
-          // });
-          // const resultados = respuesta.data;
+          const respuesta = await axios.get("/api/padron/");
+          const listaCompleta = respuesta.data;
 
-          // Datos de prueba (simulación de respuesta del backend)
-          const resultadosMock = [
-            {
-              cuil: "20381234567",
-              nombre: "Juan Pérez",
-              profesion: "Médico",
-              servicio: "Terapia Intensiva",
-              capacitacion: "RCP Avanzado",
-            },
-            {
-              cuil: "27299876543",
-              nombre: "María Gómez",
-              profesion: "Enfermería",
-              servicio: "Guardia",
-              capacitacion: "Soporte Vital",
-            },
-          ].filter((item) => {
-            const matchCuil = cuil ? item.cuil.includes(cuil) : true;
+          const resultados = listaCompleta.filter((item) => {
+            const matchCuil = cuil ? (item.cuil || "").includes(cuil) : true;
             const matchApellido = apellido
-              ? item.nombre.toLowerCase().includes(apellido.toLowerCase())
+              ? (item.apellido || "").toLowerCase().includes(apellido)
               : true;
             return matchCuil && matchApellido;
           });
 
-          renderizarResultados(resultadosMock);
+          renderizarResultados(resultados);
         } catch (error) {
           console.error("Error al consultar la API de búsqueda:", error);
           tablaResultados.innerHTML = `<tr><td colspan="5" class="no-results" style="color: #dc3545;">Error al conectar con el servidor.</td></tr>`;
@@ -206,20 +187,18 @@
         asistentes.forEach((asistente) => {
           const fila = document.createElement("tr");
           fila.innerHTML = `
-                    <td>${asistente.cuil}</td>
-                    <td>${asistente.nombre}</td>
-                    <td>${asistente.profesion}</td>
-                    <td>${asistente.servicio}</td>
-                    <td>${asistente.capacitacion}</td>
-                `;
+            <td>${asistente.cuil || "-"}</td>
+            <td>${asistente.nombre || ""} ${asistente.apellido || ""}</td>
+            <td>${asistente.profesion || "-"}</td>
+            <td>${asistente.servicio || "-"}</td>
+            <td>${asistente.permisos_solicitar || "-"}</td>
+          `;
           tablaResultados.appendChild(fila);
         });
       }
 
-      // Eventos de búsqueda
       btnBuscar.addEventListener("click", realizarBusqueda);
 
-      // Búsqueda en tiempo real al presionar Enter en los inputs
       inputCuil.addEventListener("keypress", (e) => {
         if (e.key === "Enter") realizarBusqueda();
       });

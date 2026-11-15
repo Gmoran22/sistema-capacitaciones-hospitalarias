@@ -7,7 +7,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Configuración de Seguridad y Entorno (con valores por defecto)
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-capacitaciones-hospitalarias-segura-2026')
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://*.trycloudflare.com']
 
 # Definición de Aplicaciones
 INSTALLED_APPS = [
